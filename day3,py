@@ -1,0 +1,175 @@
+import streamlit as st
+import pandas as pd
+
+import matplotlib.pyplot as plt
+import plotly.express as px
+
+
+#Pageconfiguration
+#----------------------------
+st.set_page_config(page_title="Titanic Dashboard",page_icon="🔬", layout="wide")
+
+df= pd.read_csv(r"C:\Users\Arjun Singh\Downloads\Titanic-Dataset.csv")
+
+
+st.title("The Titanic Dataset")
+
+# Creating Filters
+
+col1,col2, col3=st.columns(3)
+
+with col1:
+    gender=st.selectbox("Select Gender",["All","male","female"])
+    if gender!="All":
+        filtered_df =df[df["Sex"]==gender]
+    else:
+        filtered_df=df
+with col2:
+    pclass=st.selectbox("Select Passenger Class",["All",1,2,3])
+    if pclass!="All":
+        filtered_df =filtered_df[filtered_df["Pclass"]==pclass]
+
+with col3:
+    classes=st.multiselect("Select Passenger Class",[1,2,3])
+    filtered_df= filtered_df[filtered_df["Pclass"].isin(classes)]
+
+
+
+# Displaying Filtered Data
+st.subheader("Filtered Titanic Data")
+st.write("Passengers after filtering:", len(filtered_df))
+st.dataframe(filtered_df)
+
+
+
+# st.dataframe(df)
+
+# st.write("SummaryStatistics")
+# st.dataframe(df.describe())
+
+# st.table(df.describe())
+
+# st.write("null values")
+# st.dataframe(df.isnull().sum())
+
+total_fare=filtered_df["Fare"].sum()
+average_fare=filtered_df["Fare"].mean()
+total_people=len(filtered_df)
+# st.metric("Total Fare of the trip",f"${total_fare:,.2f}")
+# st.metric("TotalPassengers",total_people)
+# st.metric("Average Fare of the ticket",f"${average_fare:,.2f}")
+
+
+col1,col2,col3=st.columns(3)
+with col1:
+    st.metric("TotalFare",f"{total_fare:,.2f}")
+with col2:
+    st.metric("TotalPassengers",total_people)
+with col3:
+    st.metric("AverageFare",f"{average_fare:,.2f}")
+
+
+col1,col2=st.columns(2)
+
+survivors=filtered_df["Survived"].sum()
+survival_rate = (filtered_df["Survived"].mean()*100)
+
+with col1:
+    st.metric("Survivors",survivors)
+
+with col2:
+    st.metric("SurvivalRate",f"{survival_rate:.2f}%")
+
+
+
+# avg_fare=filtered_df.groupby("Pclass")["Fare"].mean()
+# st.subheader("AverageFarebyPassenger Class")
+# st.line_chart(avg_fare)
+
+
+
+# class_counts=filtered_df["Pclass"].value_counts().sort_index()
+# st.subheader("PassengersbyClass")
+# st.bar_chart(class_counts)
+
+
+# survival=filtered_df.groupby("Pclass")["Survived"].sum()
+# st.subheader("SurvivorsbyPassengerClass")
+# st.area_chart(survival)
+
+
+
+col1,col2,col3=st.columns(3)
+with col1:
+    avg_fare=filtered_df.groupby("Pclass")["Fare"].mean()
+    st.subheader("AverageFarebyPassenger Class")
+    st.line_chart(avg_fare)
+with col2:
+    class_counts=filtered_df["Pclass"].value_counts().sort_index()
+    st.subheader("PassengersbyClass")
+    st.bar_chart(class_counts)
+with col3:
+    survival=filtered_df.groupby("Pclass")["Survived"].sum()
+    st.subheader("SurvivorsbyPassengerClass")
+    st.area_chart(survival)
+
+
+
+col1,col2,col3,col4=st.columns(4)
+
+with col1:
+    gender_counts = filtered_df["Sex"].value_counts()
+
+    fig,ax=plt.subplots()
+    ax.pie(gender_counts,labels=gender_counts.index,autopct="%1.1f%%",explode=[0.05,0])
+    ax.set_title("Passenger Distribution by Gender")
+    st.pyplot(fig)
+
+with col2:
+    fig,ax=plt.subplots()
+    ax.scatter(filtered_df["Age"],filtered_df["Fare"])
+    # ax.set_xlabel("Age")
+    # ax.set_ylabel("Fare")
+    ax.set_title("AgevsFare")
+    st.pyplot(fig)
+
+with col3:
+    fig,ax=plt.subplots()
+    ax.hist(filtered_df["Fare"],bins=30)
+    # ax.set_xlabel("Fare")
+    # ax.set_ylabel("NumberofPassengers")
+    ax.set_title("FareDistribution")
+    st.pyplot(fig)
+
+
+with col4:
+    fig,ax=plt.subplots()
+    filtered_df.boxplot(column="Age",by="Pclass",ax=ax)
+    ax.set_xlabel("PassengerClass")
+    ax.set_ylabel("Age")
+    ax.set_title("AgeDistributionbyPassengerClass")
+    plt.suptitle("")
+    st.pyplot(fig)
+
+
+
+import plotly.express as px
+
+col1,col2=st.columns(2)
+with col1:
+    fig=px.scatter(filtered_df,x="Age",y="Fare",title="Age vs Fare")
+    st.plotly_chart(fig,use_container_width=True)
+
+with col2:
+    fig=px.scatter(filtered_df,x="Age",y="Fare",color="Sex",title="Age vs Fare by Gender")
+    st.plotly_chart(fig,use_container_width=True)
+
+
+col1,col2=st.columns(2)
+with col1:
+    fig=px.histogram(filtered_df,x="Age",nbins=20,title="Age Distribution")
+    st.plotly_chart(fig,use_container_width=True)
+
+with col2:
+    fig=px.box(filtered_df,x="Pclass",y="Fare",title="Fare Distribution by Passenger Class")
+    st.plotly_chart(fig,use_container_width=True)
